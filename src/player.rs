@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{NUM_COLS, NUM_ROWS, frame::Drawable, shot::Shot};
+use crate::{NUM_COLS, NUM_ROWS, frame::Drawable, shot::Shot, invaders::Invaders};
 
 pub struct Player{
     x: usize,
@@ -41,6 +41,18 @@ impl Player{
     pub fn update(&mut self, delta:Duration){
         self.shots.iter_mut().for_each(|shot| shot.update(delta));
         self.shots.retain(|shot| !shot.dead());
+    }
+
+    pub fn detect_hits(&mut self,invaders: &mut Invaders) -> bool{
+        let mut hit_something = false;
+        self.shots.iter_mut().for_each(|shot|{
+            if !shot.exploding && invaders.kill_invader_at(shot.x, shot.y){
+                shot.explode();
+                hit_something = true;
+            }
+        });
+
+        hit_something
     }
 }
 
