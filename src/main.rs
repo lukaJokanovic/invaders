@@ -1,7 +1,7 @@
 use std::{error::Error, io, sync::mpsc, time::{Duration, Instant}, thread};
 
 use crossterm::{terminal::{self, EnterAlternateScreen, LeaveAlternateScreen}, ExecutableCommand, cursor::{Hide, Show}, event::{self, Event}};
-use invaders::{frame::{self, Drawable}, render::render, player::Player};
+use invaders::{frame::{self, Drawable}, render::render, player::Player, invaders::Invaders};
 use rusty_audio::Audio;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -17,6 +17,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut player = Player::new();
     let mut instant = Instant::now();
+    let mut invaders = Invaders::new();
+
 
     // Terminal
     let mut stdout = io::stdout();
@@ -69,9 +71,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         // Updates
         player.update(delta);
+        if invaders.update(delta){
+            audio.play("move");
+        }
 
         // Draw & render 
-        player.draw(&mut curr_frame);
+        let drawables: Vec<&dyn Drawable> = vec![&invaders, & player];
+        drawables.iter().for_each(|drawable| drawable.draw(&mut curr_frame));
         render_tx.send(curr_frame)?;
         thread::sleep(Duration::from_millis(1));
     }
